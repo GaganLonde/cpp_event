@@ -11,7 +11,7 @@ export interface StudentNode {
 export function createNode(
   studentId: string,
   studentName: string,
-  courseId: string
+  courseId: string,
 ): StudentNode {
   return {
     studentId,
@@ -26,6 +26,38 @@ export function createNode(
 export class LinkedList {
   head: StudentNode | null = null;
   private listeners: Set<() => void> = new Set();
+  private readonly STORAGE_KEY = "linkedListStudents";
+
+  constructor() {
+    this.loadFromStorage();
+  }
+
+  // Load data from localStorage
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        const nodes = JSON.parse(stored) as StudentNode[];
+        // Reconstruct the linked list from stored array
+        this.head = null;
+        for (const node of nodes) {
+          this.insertRear(node.studentId, node.studentName, node.courseId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load from localStorage:", error);
+    }
+  }
+
+  // Save data to localStorage
+  private saveToStorage(): void {
+    try {
+      const data = this.toArray();
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.error("Failed to save to localStorage:", error);
+    }
+  }
 
   // Subscribe to changes
   subscribe(listener: () => void): () => void {
@@ -36,6 +68,7 @@ export class LinkedList {
   // Notify all listeners
   private notify(): void {
     this.listeners.forEach((listener) => listener());
+    this.saveToStorage();
   }
 
   // Insert at front
