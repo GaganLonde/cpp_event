@@ -1,11 +1,15 @@
-import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { linkedList, StudentNode } from '@/lib/linkedList';
 
 export function useLinkedList() {
-  const nodes = useSyncExternalStore(
-    (callback) => linkedList.subscribe(callback),
-    () => linkedList.toArray()
-  );
+  const [nodes, setNodes] = useState<StudentNode[]>(() => linkedList.toArray());
+
+  useEffect(() => {
+    const unsubscribe = linkedList.subscribe(() => {
+      setNodes(linkedList.toArray());
+    });
+    return unsubscribe;
+  }, []);
 
   const insertFront = useCallback((studentId: string, studentName: string, courseId: string) => {
     linkedList.insertFront(studentId, studentName, courseId);
@@ -27,10 +31,10 @@ export function useLinkedList() {
     return linkedList.filterByCourseId(courseId);
   }, []);
 
-  const getHead = useCallback(() => linkedList.head, [nodes]);
-  const getTail = useCallback(() => linkedList.getTail(), [nodes]);
-  const isEmpty = useCallback(() => linkedList.isEmpty(), [nodes]);
-  const size = useCallback(() => linkedList.size(), [nodes]);
+  const getHead = useCallback(() => linkedList.head, []);
+  const getTail = useCallback(() => linkedList.getTail(), []);
+  const isEmpty = useCallback(() => linkedList.isEmpty(), []);
+  const size = useCallback(() => linkedList.size(), []);
 
   return {
     nodes,
